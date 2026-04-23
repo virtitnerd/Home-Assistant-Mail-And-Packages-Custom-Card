@@ -194,7 +194,6 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
     `}};e([Fe({attribute:!1})],pt.prototype,"hass",void 0),e([Ze()],pt.prototype,"_config",void 0),e([Ze()],pt.prototype,"_openSections",void 0),pt=e([We("mailandpackages-card-editor")],pt);const mt=`${Ye}/img/square_delivery.png`;window.customCards=window.customCards||[],window.customCards.some(e=>"mailandpackages-compact-card"===e.type)||window.customCards.push({type:"mailandpackages-compact-card",name:"Mail and Packages (Compact)",preview:!0,description:"Minimalist view: mail count, per-carrier package totals, aggregate in-transit and delivered."});let gt=class extends je{static async getConfigElement(){return document.createElement("mailandpackages-card-editor")}static getStubConfig(){return{name:"Mail Summary",carriers:{}}}setConfig(e){if(!e)throw new Error(ht("common.invalid_configuration"));this.config={name:"Mail Summary",...e}}shouldUpdate(e){return!!this.config&&(e.has("config")||e.has("hass"))}render(){const e=this.config,t=this.hass.states,s=e.entity_mail_updated?t[e.entity_mail_updated]:void 0,i=e.entity_packages_in_transit?t[e.entity_packages_in_transit]:void 0,r=e.entity_packages_delivered?t[e.entity_packages_delivered]:void 0,n=e.entity_delivery_message?t[e.entity_delivery_message]:void 0,o=e.carriers||{},a=[];for(const e of nt){const s=o[e.key];if(s){if(s.entity_mail){const e=t[s.entity_mail];e&&a.push({image:`${Ye}/img/square_mail.png`,label:"Mail",count:e.state,entityId:s.entity_mail})}if(s.entity_packages){const i=t[s.entity_packages];i&&a.push({image:`${Ye}/${e.image}`,label:e.name,count:i.state,entityId:s.entity_packages})}}}const c=o.usps,l=c?.entity_camera?t[c.entity_camera]:void 0,d=l?.attributes?.entity_picture;let h="";if(s?.state&&"unavailable"!==s.state&&"unknown"!==s.state)try{h=new Date(s.state).toLocaleString()}catch{h=s.state}return xe`
       <ha-card class="compact-card" tabindex="0">
         ${e.name?xe`<div class="compact-title">${e.name}</div>`:""}
-
         ${i||r?xe`
               <div class="compact-summary">
                 ${r?xe`
@@ -221,9 +220,7 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
                     `:""}
               </div>
             `:""}
-
         ${n?xe`<div class="compact-message">${n.state}</div>`:""}
-
         ${a.length>0?xe`
               <div class="compact-carriers">
                 ${a.map(e=>xe`
@@ -234,7 +231,6 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
                   `)}
               </div>
             `:""}
-
         ${d?xe`
               <img
                 class="compact-camera"
@@ -266,7 +262,8 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       .compact-summary {
         display: flex;
         flex-wrap: wrap;
-        gap: 16px;
+        justify-content: center;
+        gap: 16px 32px;
         padding: 6px 16px;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
@@ -284,7 +281,8 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       .compact-carriers {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px 20px;
+        justify-content: space-evenly;
+        gap: 10px 8px;
         padding: 8px 16px;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
