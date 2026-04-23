@@ -25,6 +25,8 @@ export interface CarrierEntityConfig {
   entity_otp?: string;
   /** camera.mail_usps_camera / camera.mail_amazon_delivery_camera etc. */
   entity_camera?: string;
+  /** When true, the camera image is hidden unless entity_delivered state > 0 */
+  camera_only_when_delivered?: boolean;
   /** Amazon-specific: URL to open when the Amazon header is clicked */
   amazon_url?: string;
 }

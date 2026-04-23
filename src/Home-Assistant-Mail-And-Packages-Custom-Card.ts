@@ -155,7 +155,13 @@ export class MailandpackagesCard extends LitElement {
     const cameraState = carrierCfg.entity_camera ? this.hass.states[carrierCfg.entity_camera] : undefined;
     const cameraUrl = cameraState?.attributes?.entity_picture as string | undefined;
 
-    if (configuredSensors.length === 0 && !cameraUrl) return html``;
+    // Honour "only show camera when a package was delivered today"
+    const deliveredCount = carrierCfg.entity_delivered
+      ? parseInt(this.hass.states[carrierCfg.entity_delivered]?.state ?? '0', 10)
+      : 0;
+    const showCamera = !!cameraUrl && (!carrierCfg.camera_only_when_delivered || deliveredCount > 0);
+
+    if (configuredSensors.length === 0 && !showCamera) return html``;
 
     const headerLink = carrier.key === 'amazon' && carrierCfg.amazon_url ? carrierCfg.amazon_url : carrier.url;
 
@@ -168,11 +174,11 @@ export class MailandpackagesCard extends LitElement {
               >`
             : html`<span class="carrier-name">${carrier.name}</span>`}
         </div>
-        ${cameraUrl
+        ${showCamera
           ? html`
               <img
                 class="delivery-camera"
-                src="${cameraUrl}&interval=30"
+                src="${cameraUrl!}&interval=30"
                 alt="${carrier.name} delivery camera"
                 @click=${() => this._showMoreInfo(carrierCfg.entity_camera!)}
               />
@@ -256,6 +262,7 @@ export class MailandpackagesCard extends LitElement {
       /* ── Summary row ── */
       .summary-row {
         display: flex;
+        flex-wrap: wrap;
         justify-content: center;
         gap: 24px;
         padding: 12px 16px 4px;
@@ -308,11 +315,12 @@ export class MailandpackagesCard extends LitElement {
       }
 
       /* ── Sensor badges row ── */
-      .carrier-sensors,
-      .summary-row {
+      .carrier-sensors {
         display: flex;
         flex-wrap: wrap;
+        justify-content: space-evenly;
         gap: 12px;
+        padding: 4px 0 8px;
       }
 
       /* ── Individual badge ── */
