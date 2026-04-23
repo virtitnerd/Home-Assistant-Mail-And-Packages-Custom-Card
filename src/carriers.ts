@@ -142,7 +142,7 @@ export const CARRIERS: CarrierDefinition[] = [
   {
     key: 'auspost',
     name: 'Australia Post',
-    image: 'img/square_auspost.png',
+    image: 'img/square_australia-post.png',
     url: 'https://auspost.com.au',
     sensors: [SENSOR_PACKAGES, SENSOR_DELIVERING, SENSOR_DELIVERED],
   },
@@ -170,14 +170,14 @@ export const CARRIERS: CarrierDefinition[] = [
   {
     key: 'inpost_pl',
     name: 'InPost.pl',
-    image: 'img/square_inpost_pl.png',
+    image: 'img/square_inpost.png',
     url: 'https://inpost.pl',
     sensors: [SENSOR_PACKAGES, SENSOR_DELIVERING, SENSOR_DELIVERED],
   },
   {
     key: 'dpd_com_pl',
     name: 'DPD Poland',
-    image: 'img/square_dpd_com_pl.png',
+    image: 'img/square_dpd.png',
     url: 'https://tracktrace.dpd.com.pl',
     sensors: [SENSOR_PACKAGES, SENSOR_DELIVERING, SENSOR_DELIVERED],
   },
@@ -191,7 +191,7 @@ export const CARRIERS: CarrierDefinition[] = [
   {
     key: 'dpd_nl',
     name: 'DPD Netherlands',
-    image: 'img/square_dpd_nl.png',
+    image: 'img/square_dpd.png',
     url: 'https://www.dpd.nl',
     sensors: [SENSOR_PACKAGES, SENSOR_DELIVERING, SENSOR_DELIVERED],
   },
@@ -256,7 +256,7 @@ export const CARRIERS: CarrierDefinition[] = [
   {
     key: 'poczta_polska',
     name: 'Poczta Polska',
-    image: 'img/square_poczta_polska.png',
+    image: 'img/square_poczta-polska.png',
     url: 'http://emonitoring.poczta-polska.pl',
     sensors: [SENSOR_PACKAGES, SENSOR_DELIVERING],
   },
