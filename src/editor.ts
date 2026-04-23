@@ -51,6 +51,20 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
     fireEvent(this, 'config-changed', { config: this._config });
   }
 
+  private _setCarrierBoolean(carrierKey: string, configKey: keyof CarrierEntityConfig, value: boolean): void {
+    if (!this._config) return;
+    const carriers = { ...(this._config.carriers || {}) };
+    const carrierCfg: CarrierEntityConfig = { ...(carriers[carrierKey] || {}) };
+    if (value) {
+      (carrierCfg as any)[configKey] = true;
+    } else {
+      delete (carrierCfg as any)[configKey];
+    }
+    carriers[carrierKey] = carrierCfg;
+    this._config = { ...this._config, carriers };
+    fireEvent(this, 'config-changed', { config: this._config });
+  }
+
   // ── Section accordion ─────────────────────────────────────────────────────
 
   private _toggleSection(key: string): void {
@@ -87,11 +101,11 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
     return html`
       <ha-entity-picker
         .hass=${this.hass}
-        .value=${value || ''}
+        .value=${value ?? ''}
         .includeDomains=${domains}
         .label=${label}
         allow-custom-entity
-        @value-changed=${(e: CustomEvent) => onChange(e.detail.value)}
+        @value-changed=${(e: CustomEvent) => onChange((e as CustomEvent<{ value: string }>).detail.value)}
       ></ha-entity-picker>
     `;
   }
@@ -123,6 +137,24 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
         )
       : html``;
 
+    const hasDeliveredSensor = carrier.sensors.some((s) => s.configKey === 'entity_delivered');
+    const cameraConditional =
+      carrier.hasCamera && cfg.entity_camera && hasDeliveredSensor
+        ? html`
+            <ha-formfield label="Only show camera when delivered count > 0">
+              <ha-switch
+                .checked=${cfg.camera_only_when_delivered ?? false}
+                @change=${(e: Event) =>
+                  this._setCarrierBoolean(
+                    carrier.key,
+                    'camera_only_when_delivered',
+                    (e.target as HTMLInputElement).checked,
+                  )}
+              ></ha-switch>
+            </ha-formfield>
+          `
+        : html``;
+
     const amazonUrl =
       carrier.key === 'amazon'
         ? this._textField('Amazon URL (optional)', cfg.amazon_url, (v) =>
@@ -130,7 +162,7 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
           )
         : html``;
 
-    return html` ${sensorPickers} ${cameraPicker} ${amazonUrl} `;
+    return html` ${sensorPickers} ${cameraPicker} ${cameraConditional} ${amazonUrl} `;
   }
 
   // ── Main render ───────────────────────────────────────────────────────────
@@ -245,6 +277,12 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
       ha-textfield {
         display: block;
         width: 100%;
+      }
+
+      ha-formfield {
+        display: flex;
+        align-items: center;
+        padding: 4px 0;
       }
     `;
   }
