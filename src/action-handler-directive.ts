@@ -1,34 +1,27 @@
-import { directive, PropertyPart } from 'lit-html';
-
-import { ActionHandlerDetail, ActionHandlerOptions } from 'custom-card-helpers/dist/types';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { noChange } from 'lit';
+import { directive, Directive, ElementPart, PartInfo, PartType } from 'lit/directive.js';
 import { fireEvent } from 'custom-card-helpers';
+import type { ActionHandlerOptions } from 'custom-card-helpers/dist/types';
 
-const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
+const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-interface ActionHandler extends HTMLElement {
-  holdTime: number;
-  bind(element: Element, options): void;
-}
 interface ActionHandlerElement extends HTMLElement {
   actionHandler?: boolean;
 }
 
 declare global {
   interface HASSDomEvents {
-    action: ActionHandlerDetail;
+    action: { action: string };
   }
 }
 
-class ActionHandler extends HTMLElement implements ActionHandler {
+class ActionHandlerImpl extends HTMLElement {
   public holdTime = 500;
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public ripple: any;
 
   protected timer?: number;
-
   protected held = false;
-
   private dblClickTimeout?: number;
 
   constructor() {
@@ -45,16 +38,15 @@ class ActionHandler extends HTMLElement implements ActionHandler {
       pointerEvents: 'none',
       zIndex: '999',
     });
-
     this.appendChild(this.ripple);
     this.ripple.primary = true;
 
-    ['touchcancel', 'mouseout', 'mouseup', 'touchmove', 'mousewheel', 'wheel', 'scroll'].forEach(ev => {
+    ['touchcancel', 'mouseout', 'mouseup', 'touchmove', 'mousewheel', 'wheel', 'scroll'].forEach((ev) => {
       document.addEventListener(
         ev,
         () => {
           clearTimeout(this.timer);
-          this.stopAnimation();
+          this._stopAnimation();
           this.timer = undefined;
         },
         { passive: true },
@@ -62,51 +54,30 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     });
   }
 
-  public bind(element: ActionHandlerElement, options): void {
-    if (element.actionHandler) {
-      return;
-    }
+  public bind(element: ActionHandlerElement, options: ActionHandlerOptions): void {
+    if (element.actionHandler) return;
     element.actionHandler = true;
 
     element.addEventListener('contextmenu', (ev: Event) => {
-      const e = ev || window.event;
-      if (e.preventDefault) {
-        e.preventDefault();
-      }
-      if (e.stopPropagation) {
-        e.stopPropagation();
-      }
-      e.cancelBubble = true;
-      e.returnValue = false;
+      ev.preventDefault();
+      ev.stopPropagation();
       return false;
     });
 
     const start = (ev: Event): void => {
       this.held = false;
-      let x;
-      let y;
-      if ((ev as TouchEvent).touches) {
-        x = (ev as TouchEvent).touches[0].pageX;
-        y = (ev as TouchEvent).touches[0].pageY;
-      } else {
-        x = (ev as MouseEvent).pageX;
-        y = (ev as MouseEvent).pageY;
-      }
-
+      const { pageX, pageY } = (ev as TouchEvent).touches ? (ev as TouchEvent).touches[0] : (ev as MouseEvent);
       this.timer = window.setTimeout(() => {
-        this.startAnimation(x, y);
+        this._startAnimation(pageX, pageY);
         this.held = true;
       }, this.holdTime);
     };
 
     const end = (ev: Event): void => {
-      // Prevent mouse event if touch event
       ev.preventDefault();
-      if (['touchend', 'touchcancel'].includes(ev.type) && this.timer === undefined) {
-        return;
-      }
+      if (['touchend', 'touchcancel'].includes(ev.type) && this.timer === undefined) return;
       clearTimeout(this.timer);
-      this.stopAnimation();
+      this._stopAnimation();
       this.timer = undefined;
       if (this.held) {
         fireEvent(element, 'action', { action: 'hold' });
@@ -127,63 +98,63 @@ class ActionHandler extends HTMLElement implements ActionHandler {
     };
 
     const handleEnter = (ev: KeyboardEvent): void => {
-      if (ev.keyCode !== 13) {
-        return;
-      }
+      if (ev.key !== 'Enter') return;
       end(ev);
     };
 
     element.addEventListener('touchstart', start, { passive: true });
     element.addEventListener('touchend', end);
     element.addEventListener('touchcancel', end);
-
     element.addEventListener('mousedown', start, { passive: true });
     element.addEventListener('click', end);
-
     element.addEventListener('keyup', handleEnter);
   }
 
-  private startAnimation(x: number, y: number): void {
-    Object.assign(this.style, {
-      left: `${x}px`,
-      top: `${y}px`,
-      display: null,
-    });
+  private _startAnimation(x: number, y: number): void {
+    Object.assign(this.style, { left: `${x}px`, top: `${y}px`, display: null });
     this.ripple.disabled = false;
     this.ripple.active = true;
     this.ripple.unbounded = true;
   }
 
-  private stopAnimation(): void {
+  private _stopAnimation(): void {
     this.ripple.active = false;
     this.ripple.disabled = true;
     this.style.display = 'none';
   }
 }
 
-// TODO You need to replace all instances of "action-handler-mailandpackages" with "action-handler-<your card name>"
-customElements.define('action-handler-mailandpackages', ActionHandler);
+customElements.define('action-handler-mailandpackages', ActionHandlerImpl);
 
-const getActionHandler = (): ActionHandler => {
-  const body = document.body;
-  if (body.querySelector('action-handler-mailandpackages')) {
-    return body.querySelector('action-handler-mailandpackages') as ActionHandler;
-  }
-
-  const actionhandler = document.createElement('action-handler-mailandpackages');
-  body.appendChild(actionhandler);
-
-  return actionhandler as ActionHandler;
+const getActionHandler = (): ActionHandlerImpl => {
+  const existing = document.body.querySelector('action-handler-mailandpackages');
+  if (existing) return existing as ActionHandlerImpl;
+  const handler = document.createElement('action-handler-mailandpackages') as ActionHandlerImpl;
+  document.body.appendChild(handler);
+  return handler;
 };
 
-export const actionHandlerBind = (element: ActionHandlerElement, options: ActionHandlerOptions): void => {
-  const actionhandler: ActionHandler = getActionHandler();
-  if (!actionhandler) {
-    return;
-  }
-  actionhandler.bind(element, options);
-};
+class ActionHandlerDirective extends Directive {
+  private _options: ActionHandlerOptions;
 
-export const actionHandler = directive((options: ActionHandlerOptions = {}) => (part: PropertyPart): void => {
-  actionHandlerBind(part.committer.element as ActionHandlerElement, options);
-});
+  constructor(partInfo: PartInfo) {
+    super(partInfo);
+    if (partInfo.type !== PartType.ELEMENT) {
+      throw new Error('actionHandler must be used on an element');
+    }
+    this._options = {};
+  }
+
+  update(part: ElementPart, [options]: [ActionHandlerOptions]): void {
+    this._options = options;
+    const handler = getActionHandler();
+    handler.bind(part.element as ActionHandlerElement, options);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  render(_options: ActionHandlerOptions) {
+    return noChange;
+  }
+}
+
+export const actionHandler = directive(ActionHandlerDirective);

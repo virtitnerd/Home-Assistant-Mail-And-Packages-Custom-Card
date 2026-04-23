@@ -1,346 +1,379 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  LitElement,
-  html,
-  customElement,
-  property,
-  CSSResult,
-  TemplateResult,
-  css,
-  PropertyValues,
-  internalProperty,
-} from 'lit-element';
-import {
-  HomeAssistant,
-  hasConfigOrEntityChanged,
-  hasAction,
-  ActionHandlerEvent,
-  handleAction,
-  LovelaceCardEditor,
-  getLovelace,
-} from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types
+import { LitElement, html, css } from 'lit';
+import { customElement, property, state } from 'lit/decorators.js';
+import type { CSSResultGroup, TemplateResult, PropertyValues } from 'lit';
+import { HomeAssistant, LovelaceCardEditor, getLovelace, fireEvent } from 'custom-card-helpers';
 
 import './editor';
-
-import type { MailAndPackagesCardConfig } from './types';
-import { actionHandler } from './action-handler-directive';
-import { CARD_VERSION } from './const';
+import type { MailAndPackagesCardConfig, CarrierEntityConfig } from './types';
+import { CARD_VERSION, HACS_FILES_BASE } from './const';
+import { CARRIERS, CarrierDefinition, CarrierSensorType, getCarrierSensorImage } from './carriers';
 import { localize } from './localize/localize';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  MAILANDPACKAGES-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  `%c  MAIL AND PACKAGES CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
 
-// This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
   type: 'mailandpackages-card',
-  name: 'mailandpackages Card',
+  name: 'Mail and Packages Card',
   preview: true,
-  description: 'A template custom card for you to create something awesome',
+  description: 'A custom companion card for the Mail and Packages integration.',
 });
 
-// TODO Name your custom element
+const FALLBACK_IMG = `${HACS_FILES_BASE}/img/square_delivery.png`;
+
 @customElement('mailandpackages-card')
 export class MailandpackagesCard extends LitElement {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
-    return document.createElement('mailandpackages-card-editor');
+    return document.createElement('mailandpackages-card-editor') as LovelaceCardEditor;
   }
 
   public static getStubConfig(): object {
     return {
-      name: 'Mail and Packages'
+      name: 'Mail and Packages',
+      carriers: {},
     };
   }
 
-  // TODO Add any properities that should cause your element to re-render here
-  // https://lit-element.polymer-project.org/guide/properties
   @property({ attribute: false }) public hass!: HomeAssistant;
-  @internalProperty() private config!: MailAndPackagesCardConfig;
+  @state() private config!: MailAndPackagesCardConfig;
 
-  // https://lit-element.polymer-project.org/guide/properties#accessors-custom
   public setConfig(config: MailAndPackagesCardConfig): void {
-    // TODO Check for required fields and that they are of the proper format
-    // const entityMailUpdate = this.config.entity_mail_update ? this.hass.states['sensor.mail_updated'].state : false;
     if (!config) {
       throw new Error(localize('common.invalid_configuration'));
     }
-
     if (config.test_gui) {
       getLovelace().setEditMode(true);
     }
-
-    this.config = {
-      title: 'Mail and Packages',
-      ...config,
-    };
+    this.config = { name: 'Mail and Packages', ...config };
   }
 
-  // https://lit-element.polymer-project.org/guide/lifecycle#shouldupdate
   protected shouldUpdate(changedProps: PropertyValues): boolean {
-    if (!this.config) {
-      return false;
-    }
-
-    return hasConfigOrEntityChanged(this, changedProps, false);
+    if (!this.config) return false;
+    return changedProps.has('config') || changedProps.has('hass');
   }
 
-  // https://lit-element.polymer-project.org/guide/templates
   protected render(): TemplateResult | void {
-    // TODO Check for stateObj or other necessary things and render a warning if missing
-    const entityMailUpdate = this.hass.states['sensor.mail_updated'].state ?
-      html `Last Check: ${this.hass.states['sensor.mail_updated'].state}` : '';
-
-
-
-    const entityPackagesInTransit = this.config.entity_packages_in_transit ?
-      html `<div class="status"><div class="statusDetails"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_in-transit.png" /> <div class="statusCount">${this.hass.states['sensor.mail_packages_in_transit'].state} </div></div></div>` : '';
-    const entityPackagesDelivered = this.config.entity_packages_delivered ?
-      html `<div class="status"><div class="statusDetails"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_delivery.png" /> <div class="statusCount">${this.hass.states['sensor.mail_packages_delivered'].state} </div></div></div>` : '';
-
-    const entityUspsMail = this.config.entity_usps_mail ?
-      html `<div class="status"><div class="statusDetails"><a href="https://informeddelivery.usps.com/" title="Open the USPS Informed Delivery website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_mail.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_usps_mail'].state}</div></div></div>` : '';
-    const uspsCameraUrl = this.hass.states['camera.mail_usps_camera'].attributes.entity_picture;
-
-    const entityUspsPackages = this.config.entity_USPS_packages ?
-      html `<div class="status"><div class="statusDetails"><a href="https://informeddelivery.usps.com/" title="Open the USPS Informed Delivery website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_usps.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_usps_packages'].state}</div></div></div>` : '';
-    const entityUspsException = this.config.entity_USPS_exception ?
-      html`<div class="status"><div class="statusDetails"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_usps_exception.png" /> <div class="statusCount">${this.hass.states['sensor.mail_usps_exception'].state}</div></div></div>` : '';
-
-    const entityUpsPackages = this.config.entity_UPS_packages ?
-      html`<div class="status"><div class="statusDetails"><a href="$https://wwwapps.ups.com/mcdp" title="Open the UPS website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_ups.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_ups_packages'].state}</div></div></div>` : '';
-    const entityUpsException = this.config.entity_UPS_exception ?
-      html `<div class="status"><div class="statusDetails"><a href="$https://wwwapps.ups.com/mcdp" title="Open the UPS website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_ups_exception.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_ups_exception'].state}</div></div></div>` : '';
-
-    const entityFedexPackages = this.config.entity_fedex_packages ?
-      html`<div class="status"><div class="statusDetails"><a href="$https://www.fedex.com/apps/fedextracking" title="Open the FedEx website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_fedex.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_fedex_packages'].state}</div></div></div>` : '';
-
-    const amazonUrl = this.config.amazon_url ? this.config.amazon_url : '';
-    const entityAmazonPackages = this.config.entity_amazon_packages ?
-      html`<div class="status"><div class="statusDetails"><a href="${amazonUrl}" title="Open the amazon website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_amazon.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_amazon_packages'].state}</div></div></div>` : '';
-    const entityAmazonException = this.config.entity_amazon_exception ?
-      html `<div class="status"><div class="statusDetails"><a href="${amazonUrl}" title="Open the amazon website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_amazon_exception.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_amazon_exception'].state}</div></div></div>` : '';
-    const entityAmazonPackagesDelivered = this.config.entity_amazon_packages_delivered ?
-    html `<div class="status"><div class="statusDetails"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_delivery.png" /> <div class="statusCount">${this.hass.states['sensor.mail_amazon_packages_delivered'].state}</div></div></div>` : '';
-    const entityAmazonHubPackages = this.config.entity_amazon_hub_packages ?
-    html `<div class="status"><div class="statusDetails"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_amazon-hub.png" /> <div class="statusCount">${this.hass.states['sensor.mail_amazon_hub_packages'].state}</div></div></div>` : '';
-    const amazonCameraUrl = this.hass.states['camera.mail_amazon_delivery_camera'].attributes.entity_picture;
-
-    const entityCanadaPostPackages = this.config.entity_canada_post_packages ?
-      html `<div class="status"><div class="statusDetails"><a href="https://www.canadapost-postescanada.ca" title="Open the Canada Post website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_canada-post.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_canada_post_packages'].state}</div></div></div>` : '';
-    const entityDhlPackages = this.config.entity_DHL_packages ?
-      html `<div class="status"><div class="statusDetails"><a href="https://www.dhl.com" title="Open the DHL website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_dhl.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_dhl_packages'].state}</div></div></div>` : '';
-    const entityHermesPckages = this.config.entity_hermes_packages ?
-      html `<div class="status"><div class="statusDetails"><a href="https://www.myhermes.co.uk" title="Open the Hermes  website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_hermes-packages.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_hermes_packages'].state}</div></div></div>` : '';
-    const entityRoyalMailPackages = this.config.entity_royal_mail_packages ?
-      html `<div class="status"><div class="statusDetails"><a href="https://www.royalmail.com" title="Open the Royal Mail website." target="_blank"><img src="/hacsfiles/Home-Assistant-Mail-And-Packages-Custom-Card/img/square_royal-mail.png" /></a> <div class="statusCount">${this.hass.states['sensor.mail_royal_mail_packages'].state}</div></div></div>` : '';
-
-    const entityDeliveryMessage = this.config.entity_delivery_message ? this.hass.states[this.config.entity_delivery_message].state : '';
-
-    // const mailIcon = parseInt(entityUspsMail) > 0 ? 'mailbox-open-up' : 'mailbox-outline';
-    // const uspsIcon = entityUspsPackages > 0 ? 'package-variant' : 'package-variant-closed';
-    // const upsIcon = entityUpsPackages > 0 ? 'package-variant' : 'package-variant-closed';
-    // const fedexIcon = entityFedexPackages > 0 ? 'package-variant' : 'package-variant-closed';
-    // const amazonIcon = entityAmazonPackages > 0 ? 'package-variant' : 'package-variant-closed';
-
     if (this.config.show_warning) {
       return this._showWarning(localize('common.show_warning'));
     }
-    const entityMailUpdateCheck = this.hass.states['sensor.mail_updated'].state ? false : true;
-    if (entityMailUpdateCheck) {
-      return this._showError(localize('common.show_error'));
-    }
-// removed .header=${this.config.name} rfom ha-card
-    return html`
-      <ha-card
-        tabindex="0"
-        .label=${`Mail and Packages: ${this.config.entity || 'No Entity Defined'}`}
-        class="mail-and-packages"
-      >
-      <div class="header">
-      <h1 class="card-header">${this.config.name}</h1>
-      </div>
-      <div class="deliveryDetails">
-      ${this.config.show_usps_camera
-      ? html`
-      <img @action=${this._handleAction}
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(this.config.hold_action),
-          hasDoubleClick: hasAction(this.config.double_tap_action),
-        })} class="MailImg clear" src="${uspsCameraUrl}&interval=30" />
-      `
-      : ""}
-      <div class="deliveryTotals">
-      ${entityUspsMail}
-      ${entityPackagesInTransit}
-      ${entityPackagesDelivered}
-      </div>
-      </div>
-      <p class="summary">${entityDeliveryMessage}</p>
-      <div class="packagesTotals">
-      ${entityUspsPackages}
-      ${entityUspsException}
-      ${entityUpsPackages}
-      ${entityUpsException}
-      ${entityFedexPackages}
-      ${entityCanadaPostPackages}
-      ${entityDhlPackages}
-      ${entityHermesPckages}
-      ${entityRoyalMailPackages}
-      </div>
-      <!-- ${entityAmazonPackages || entityAmazonPackagesDelivered || entityAmazonHubPackages || this.config.show_amazon_camera
-      ? html`<h1>Amazon</h1>` : ''} -->
-      ${this.config.show_amazon_camera
-      ? html`
-      <img class="MailImg clear" src="${amazonCameraUrl}&interval=30" />
-      `
-      : ""}
-      <div class="amazon">
-      ${entityAmazonPackages}
-      ${entityAmazonPackagesDelivered}
-      ${entityAmazonException}
-      ${entityAmazonHubPackages}
-      </div>
-      <div class="footer">
-      <span class="usps_update">${entityMailUpdate}</span> <span class="version">v${CARD_VERSION}</span></div>
 
+    const mailUpdated = this.config.entity_mail_updated ? this.hass.states[this.config.entity_mail_updated] : undefined;
+
+    const inTransit = this.config.entity_packages_in_transit
+      ? this.hass.states[this.config.entity_packages_in_transit]
+      : undefined;
+
+    const delivered = this.config.entity_packages_delivered
+      ? this.hass.states[this.config.entity_packages_delivered]
+      : undefined;
+
+    const deliveryMsg = this.config.entity_delivery_message
+      ? this.hass.states[this.config.entity_delivery_message]
+      : undefined;
+
+    const carriers = this.config.carriers || {};
+
+    return html`
+      <ha-card class="mail-and-packages" tabindex="0">
+        ${this._renderHeader(mailUpdated)} ${this._renderSummary(inTransit, delivered)}
+        ${deliveryMsg ? html`<p class="delivery-message">${deliveryMsg.state}</p>` : ''}
+        <div class="carriers">${CARRIERS.map((carrier) => this._renderCarrier(carrier, carriers[carrier.key]))}</div>
       </ha-card>
     `;
   }
 
-  private _handleAction(ev: ActionHandlerEvent): void {
-    if (this.hass && this.config && ev.detail.action) {
-      handleAction(this, this.hass, this.config, ev.detail.action);
+  private _renderHeader(mailUpdated: any): TemplateResult {
+    let lastCheck = '';
+    if (mailUpdated?.state && mailUpdated.state !== 'unavailable' && mailUpdated.state !== 'unknown') {
+      try {
+        lastCheck = new Date(mailUpdated.state).toLocaleString();
+      } catch {
+        lastCheck = mailUpdated.state;
+      }
+    }
+
+    return html`
+      <div class="card-header-area">
+        ${this.config.name ? html`<div class="card-title">${this.config.name}</div>` : ''}
+        ${lastCheck ? html`<div class="last-updated">${localize('common.last_check')}: ${lastCheck}</div>` : ''}
+      </div>
+    `;
+  }
+
+  private _renderSummary(inTransit: any, delivered: any): TemplateResult {
+    if (!inTransit && !delivered) return html``;
+    return html`
+      <div class="summary-row">
+        ${inTransit
+          ? html`
+              <div class="summary-badge" title="${localize('common.in_transit')}">
+                <div class="badge-icon-wrap">
+                  <img
+                    class="badge-img"
+                    src="${HACS_FILES_BASE}/img/square_in-transit.png"
+                    alt="${localize('common.in_transit')}"
+                    @error=${this._onImgError}
+                  />
+                  <span class="badge-count">${inTransit.state}</span>
+                </div>
+                <span class="badge-label">${localize('common.in_transit')}</span>
+              </div>
+            `
+          : ''}
+        ${delivered
+          ? html`
+              <div class="summary-badge" title="${localize('common.delivered')}">
+                <div class="badge-icon-wrap">
+                  <img
+                    class="badge-img"
+                    src="${HACS_FILES_BASE}/img/square_delivery.png"
+                    alt="${localize('common.delivered')}"
+                    @error=${this._onImgError}
+                  />
+                  <span class="badge-count">${delivered.state}</span>
+                </div>
+                <span class="badge-label">${localize('common.delivered')}</span>
+              </div>
+            `
+          : ''}
+      </div>
+    `;
+  }
+
+  private _renderCarrier(carrier: CarrierDefinition, carrierCfg: CarrierEntityConfig | undefined): TemplateResult {
+    if (!carrierCfg) return html``;
+
+    const configuredSensors = carrier.sensors.filter((s) => carrierCfg[s.configKey]);
+
+    // Safe camera access — only when configured AND state exists with entity_picture
+    const cameraState = carrierCfg.entity_camera ? this.hass.states[carrierCfg.entity_camera] : undefined;
+    const cameraUrl = cameraState?.attributes?.entity_picture as string | undefined;
+
+    if (configuredSensors.length === 0 && !cameraUrl) return html``;
+
+    const headerLink = carrier.key === 'amazon' && carrierCfg.amazon_url ? carrierCfg.amazon_url : carrier.url;
+
+    return html`
+      <div class="carrier-section">
+        <div class="carrier-header">
+          ${headerLink
+            ? html`<a class="carrier-name" href="${headerLink}" target="_blank" rel="noopener noreferrer"
+                >${carrier.name}</a
+              >`
+            : html`<span class="carrier-name">${carrier.name}</span>`}
+        </div>
+        ${cameraUrl
+          ? html`
+              <img
+                class="delivery-camera"
+                src="${cameraUrl}&interval=30"
+                alt="${carrier.name} delivery camera"
+                @click=${() => this._showMoreInfo(carrierCfg.entity_camera!)}
+              />
+            `
+          : ''}
+        <div class="carrier-sensors">
+          ${configuredSensors.map((sensor) => this._renderSensorBadge(carrier, sensor, carrierCfg))}
+        </div>
+      </div>
+    `;
+  }
+
+  private _renderSensorBadge(
+    carrier: CarrierDefinition,
+    sensor: CarrierSensorType,
+    carrierCfg: CarrierEntityConfig,
+  ): TemplateResult {
+    const entityId = carrierCfg[sensor.configKey] as string | undefined;
+    if (!entityId) return html``;
+
+    const entityState = this.hass.states[entityId];
+    if (!entityState) return html``;
+
+    const imgPath = getCarrierSensorImage(carrier, sensor.key);
+    const imgSrc = `${HACS_FILES_BASE}/${imgPath}`;
+
+    return html`
+      <div class="sensor-badge" title="${sensor.label}: ${entityState.state}">
+        <div class="badge-icon-wrap">
+          <img class="badge-img" src="${imgSrc}" alt="${carrier.name} ${sensor.label}" @error=${this._onImgError} />
+          <span class="badge-count">${entityState.state}</span>
+        </div>
+        <span class="badge-label">${sensor.label}</span>
+      </div>
+    `;
+  }
+
+  private _showMoreInfo(entityId: string): void {
+    fireEvent(this, 'hass-more-info', { entityId });
+  }
+
+  private _onImgError(ev: Event): void {
+    const img = ev.target as HTMLImageElement;
+    // img.src is always the resolved absolute URL; FALLBACK_IMG is a root-relative path.
+    // Compare with endsWith so both forms match and we avoid an infinite onerror loop.
+    if (!img.src.endsWith(FALLBACK_IMG)) {
+      img.src = FALLBACK_IMG;
     }
   }
 
   private _showWarning(warning: string): TemplateResult {
-    return html`
-      <hui-warning>${warning}</hui-warning>
-    `;
+    return html`<hui-warning>${warning}</hui-warning>`;
   }
 
-  private _showError(error: string): TemplateResult {
-    const errorCard = document.createElement('hui-error-card');
-    errorCard.setConfig({
-      type: 'error',
-      error,
-      origConfig: this.config,
-    });
-
-    return html`
-      ${errorCard}
-    `;
-  }
-
-  // https://lit-element.polymer-project.org/guide/styles
-  static get styles(): CSSResult {
+  static get styles(): CSSResultGroup {
     return css`
-    .mail-and-packages {
-        margin: auto;
+      .mail-and-packages {
         padding: 0;
-        position: relative;
-    }
-    .mail-and-packages .clear {
-        clear: both;
-    }
-    .mail-and-packages a {
-        color: var(--secondary-text-color)
-    }
-    .mail-and-packages .summary {
-      padding: 1rem 1rem 0 1rem;
-    }
-    .mail-and-packages .deliveryDetails {
-      width: 100%;
-      height: auto;
-      position: relative;
-    }
-    .mail-and-packages .packagesTotals, .mail-and-packages .amazon, .mail-and-packages .deliveryTotals {
-      display: flex;
-      flex-flow: row wrap;
-      justify-content: space-evenly;
-    }
+      }
 
-    .mail-and-packages .packagesTotals {
-      margin-bottom: 1rem;
-    }
+      /* ── Header ── */
+      .card-header-area {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding: 12px 16px 8px;
+        border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      }
 
-    .mail-and-packages .deliveryTotals {
-      position: absolute;
-      bottom: -1.5rem;
-      width: 100%;
-    }
+      .card-title {
+        font-size: 1.1rem;
+        font-weight: 500;
+        color: var(--primary-text-color);
+      }
 
-    .mail-and-packages .deliveryTotals .status {
-      flex: 0 0 auto;
-    }
+      .last-updated {
+        font-size: 0.7rem;
+        color: var(--secondary-text-color);
+      }
 
-    .mail-and-packages .status {
-      box-sizing: border-box;
-      flex: 0 0 15%;
-      width: 2.5rem;
-      height: 2.5rem;
-      /* background-color: var(--secondary-background-color); */
-      margin: 1rem;
-      font-size: 1.5rem;
-      text-align: center;
-    }
+      /* ── Summary row ── */
+      .summary-row {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        padding: 12px 16px 4px;
+      }
 
-    .mail-and-packages .status .statusDetails{
-      width: 2.5rem;
-      height: 2.5rem;
-      margin: auto;
-      width: 50%;
-    }
+      /* ── Delivery message ── */
+      .delivery-message {
+        margin: 0;
+        padding: 6px 16px 10px;
+        font-size: 0.875rem;
+        color: var(--secondary-text-color);
+      }
 
-    .mail-and-packages .packagesTotals .statusCount, .mail-and-packages .amazon .statusCount, .mail-and-packages .deliveryTotals .statusCount {
-      background-color: var(--secondary-background-color);
-      border-radius: 50%;
-      font-size: 1rem;
-      position: relative;
-      bottom: 1rem;
-      right: -1.5rem;
-      line-height: 1.5rem;
-      width: 1.5rem;
-      height: 1.5rem;
-    }
-    .mail-and-packages .packagesTotals img, .mail-and-packages .amazon img, .mail-and-packages .deliveryTotals img {
-      height: 2.5rem;
-      width: auto;
-      margin-right: 1rem;
-      border-radius: 50%;
-    }
-    /* .mail-and-packages .packagesTotals::after {
-      content: "";
-      flex: auto;
-    } */
-    .mail-and-packages .MailImg {
-        position: relative;
+      /* ── Carriers container ── */
+      .carriers {
+        padding: 0 0 8px;
+      }
+
+      /* ── Carrier section ── */
+      .carrier-section {
+        padding: 10px 16px 4px;
+        border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+      }
+
+      .carrier-header {
+        margin-bottom: 8px;
+      }
+
+      .carrier-name {
+        font-size: 0.78rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--secondary-text-color);
+        text-decoration: none;
+      }
+
+      a.carrier-name:hover {
+        color: var(--primary-color);
+      }
+
+      /* ── Camera ── */
+      .delivery-camera {
         width: 100%;
         height: auto;
-        margin-top: 2px;
-    }
-    .mail-and-packages .header, .mail-and-packages .footer {
-        background-color: none;
-        padding: 1rem;
-        margin-bottom: 2px;
-    }
-    .mail-and-packages .header {
-        display: none;
-    }
-    .mail-and-packages .footer {
-        padding: 1rem 1rem 0 1rem;
-        margin-bottom: 0;
-    }
-    .mail-and-packages .usps_update, .mail-and-packages .version {
-        font-size: .7rem;
-    }
-    .mail-and-packages .version {
-        float: right;
-    }
+        border-radius: 4px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        display: block;
+      }
+
+      /* ── Sensor badges row ── */
+      .carrier-sensors,
+      .summary-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
+      /* ── Individual badge ── */
+      .sensor-badge,
+      .summary-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: default;
+      }
+
+      .badge-icon-wrap {
+        position: relative;
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+
+      .badge-img {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .badge-count {
+        position: absolute;
+        bottom: -4px;
+        right: -6px;
+        background-color: var(--card-background-color, var(--secondary-background-color));
+        border: 1px solid var(--divider-color, rgba(0, 0, 0, 0.2));
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        min-width: 1.15rem;
+        height: 1.15rem;
+        line-height: 1.15rem;
+        text-align: center;
+        padding: 0 3px;
+        color: var(--primary-text-color);
+        box-sizing: border-box;
+      }
+
+      .badge-label {
+        font-size: 0.6rem;
+        color: var(--secondary-text-color);
+        margin-top: 6px;
+        text-align: center;
+        max-width: 3.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* ── Footer version ── */
+      .footer {
+        padding: 4px 16px 8px;
+        text-align: right;
+        font-size: 0.65rem;
+        color: var(--disabled-text-color, var(--secondary-text-color));
+      }
     `;
   }
 }

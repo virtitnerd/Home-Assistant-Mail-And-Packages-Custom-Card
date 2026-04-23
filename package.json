@@ -1,54 +1,59 @@
 {
   "name": "home-assistant-mail-and-packages-custom-card",
-  "version": "1.3.2",
-  "description": "Lovelace Home-Assistant-Mail-And-Packages-Custom-Card",
+  "version": "0.0.0-dev",
+  "description": "Lovelace companion card for the Mail and Packages custom integration",
   "keywords": [
     "home-assistant",
     "homeassistant",
     "hass",
-    "automation",
     "lovelace",
     "custom-cards"
   ],
+  "type": "module",
   "module": "Home-Assistant-Mail-And-Packages-Custom-Card.js",
-  "repository": "git@github.com:custom_cards/Home-Assistant-Mail-And-Packages-Custom-Card.git",
-  "author": "Christopher <christopher@moralmunky.com",
+  "repository": "git@github.com:moralmunky/Home-Assistant-Mail-And-Packages-Custom-Card.git",
+  "author": "Christopher <christopher@moralmunky.com>",
   "license": "MIT",
   "dependencies": {
-    "custom-card-helpers": "^1.6.6",
-    "home-assistant-js-websocket": "^4.5.0",
-    "lit-element": "^2.4.0",
-    "lit-html": "^1.3.0"
+    "custom-card-helpers": "^1.9.0",
+    "lit": "^2.8.0",
+    "tslib": "^2.6.2"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.3",
-    "@babel/plugin-proposal-class-properties": "^7.12.1",
-    "@babel/plugin-proposal-decorators": "^7.12.1",
-    "@rollup/plugin-json": "^4.1.0",
-    "@typescript-eslint/eslint-plugin": "^2.34.0",
-    "@typescript-eslint/parser": "^2.34.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-config-prettier": "^6.15.0",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-prettier": "^3.1.4",
-    "prettier": "^1.19.1",
-    "rollup": "^1.32.1",
-    "rollup-plugin-babel": "^4.4.0",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-copy": "^3.4.0",
-    "rollup-plugin-copy-assets": "^2.0.3",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-serve": "^1.1.0",
-    "rollup-plugin-terser": "^5.3.1",
-    "rollup-plugin-typescript2": "^0.24.3",
-    "rollup-plugin-uglify": "^6.0.4",
-    "typescript": "^3.9.7"
+    "@open-wc/testing": "^4.0.0",
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "@web/dev-server-esbuild": "^1.0.5",
+    "@web/test-runner": "^0.20.2",
+    "@web/test-runner-playwright": "^0.11.1",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.2.5",
+    "rollup": "^3.29.4",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-serve": "^2.0.3",
+    "typescript": "^5.3.3"
   },
   "scripts": {
     "start": "rollup -c rollup.config.dev.js --watch",
     "build": "npm run lint && npm run rollup",
-    "lint": "eslint src/*.ts",
-    "rollup": "rollup -c"
+    "lint": "eslint src --ext .ts",
+    "rollup": "rollup -c rollup.config.js",
+    "test": "web-test-runner",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ]
   }
 }

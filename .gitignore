@@ -1,4 +1,28 @@
+# Dependencies
 /node_modules/
+
+# Rollup cache
 /.rpt2_cache/
+
+# Playwright browser downloads (local only, not needed in repo)
+/test-results/
+/.playwright/
+
+# Lock file (not pinned in this project)
 package-lock.json
+
+# macOS
 .DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

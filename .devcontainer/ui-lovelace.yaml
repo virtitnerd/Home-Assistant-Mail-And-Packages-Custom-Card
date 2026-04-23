@@ -3,5 +3,5 @@ resources:
     type: module
 views:
   - cards:
-      - type: custom:mailandpackagescard
+      - type: custom:mailandpackages-card
         name: Mail and Packages Card Development
