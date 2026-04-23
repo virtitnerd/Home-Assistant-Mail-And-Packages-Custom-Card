@@ -99,13 +99,16 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
     onChange: (v: string) => void,
   ): TemplateResult {
     return html`
-      <ha-selector
-        .hass=${this.hass}
-        .selector=${{ entity: { domain: domains[0] } }}
-        .value=${value ?? ''}
-        .label=${label}
-        @value-changed=${(e: CustomEvent<{ value: string | null }>) => onChange(e.detail.value ?? '')}
-      ></ha-selector>
+      <div class="entity-row">
+        <ha-selector
+          .hass=${this.hass}
+          .selector=${{ entity: { domain: domains[0] } }}
+          .value=${value ?? ''}
+          .label=${label}
+          @value-changed=${(e: CustomEvent<{ value: string | null }>) => onChange(e.detail.value ?? '')}
+        ></ha-selector>
+        ${value ? html`<button class="clear-btn" @click=${() => onChange('')} title="Remove entity">×</button>` : ''}
+      </div>
     `;
   }
 
@@ -272,10 +275,43 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
         padding: 8px 4px 4px;
       }
 
-      ha-entity-picker,
       ha-textfield {
         display: block;
         width: 100%;
+      }
+
+      .entity-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .entity-row ha-selector {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .clear-btn {
+        flex-shrink: 0;
+        background: none;
+        border: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
+        border-radius: 50%;
+        color: var(--secondary-text-color);
+        cursor: pointer;
+        font-size: 1rem;
+        line-height: 1;
+        width: 1.75rem;
+        height: 1.75rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+      }
+
+      .clear-btn:hover {
+        background: var(--error-color, #db4437);
+        border-color: var(--error-color, #db4437);
+        color: white;
       }
 
       ha-formfield {
