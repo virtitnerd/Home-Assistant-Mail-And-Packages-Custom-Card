@@ -199,7 +199,8 @@ export class MailandpackagesCompactCard extends LitElement {
       .compact-summary {
         display: flex;
         flex-wrap: wrap;
-        gap: 16px;
+        justify-content: center;
+        gap: 16px 32px;
         padding: 6px 16px;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
@@ -217,7 +218,8 @@ export class MailandpackagesCompactCard extends LitElement {
       .compact-carriers {
         display: flex;
         flex-wrap: wrap;
-        gap: 12px 20px;
+        justify-content: space-evenly;
+        gap: 10px 8px;
         padding: 8px 16px;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
