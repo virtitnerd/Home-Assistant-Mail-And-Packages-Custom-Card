@@ -41,11 +41,35 @@ URL:  /local/Home-Assistant-Mail-And-Packages-Custom-Card.js
 Type: JavaScript Module
 ```
 
+## Cards
+
+This bundle includes two cards in a single JS file:
+
+| Card type | Use case |
+|-----------|----------|
+| `custom:mailandpackages-card` | Full card — per-carrier sensor badges, cameras, detailed delivery/exception counts |
+| `custom:mailandpackages-compact-card` | Minimalist — inline `[icon] Carrier: count` row, aggregate totals, USPS camera |
+
+Both cards use the **same YAML config schema** — configure once and add either card type (or both).
+
 ## Adding the Card
 
 Open a dashboard in edit mode, click **Add Card**, and search for **Mail and Packages**. The visual editor will open.
 
 Alternatively, add it in YAML directly.
+
+## Compact Card
+
+The compact card renders the same config data in the style of the original card — a tight `[icon] Label: count` layout that fits in small dashboard panels.
+
+It shows:
+- Aggregate **Deliveries** and **In Transit** counts
+- Optional delivery message text
+- Per-carrier row: **Mail count** (USPS mail pieces) and **package count** per carrier, inline
+- USPS Informed Delivery camera image (from `carriers.usps.entity_camera`)
+- Version / last-checked footer
+
+Use `type: custom:mailandpackages-compact-card` — everything else is the same YAML config below.
 
 ## YAML Configuration
 
