@@ -369,10 +369,10 @@ export class MailandpackagesCard extends LitElement {
         color: var(--secondary-text-color);
         margin-top: 6px;
         text-align: center;
-        max-width: 3.5rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        max-width: 4.5rem;
+        white-space: normal;
+        word-break: break-word;
+        line-height: 1.2;
       }
 
       /* ── Footer version ── */
