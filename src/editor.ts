@@ -90,7 +90,7 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
     `;
   }
 
-  // ── Entity picker helpers ─────────────────────────────────────────────────
+  // ── Entity selector helpers ───────────────────────────────────────────────
 
   private _entityPicker(
     label: string,
@@ -99,14 +99,13 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
     onChange: (v: string) => void,
   ): TemplateResult {
     return html`
-      <ha-entity-picker
+      <ha-selector
         .hass=${this.hass}
+        .selector=${{ entity: { domain: domains[0] } }}
         .value=${value ?? ''}
-        .includeDomains=${domains}
         .label=${label}
-        allow-custom-entity
-        @value-changed=${(e: CustomEvent) => onChange((e as CustomEvent<{ value: string }>).detail.value)}
-      ></ha-entity-picker>
+        @value-changed=${(e: CustomEvent<{ value: string | null }>) => onChange(e.detail.value ?? '')}
+      ></ha-selector>
     `;
   }
 
@@ -139,7 +138,7 @@ export class MailandpackagesCardEditor extends LitElement implements LovelaceCar
 
     const hasDeliveredSensor = carrier.sensors.some((s) => s.configKey === 'entity_delivered');
     const cameraConditional =
-      carrier.hasCamera && cfg.entity_camera && hasDeliveredSensor
+      carrier.hasCamera && cfg.entity_camera && hasDeliveredSensor && carrier.key !== 'usps'
         ? html`
             <ha-formfield label="Only show camera when delivered count > 0">
               <ha-switch
