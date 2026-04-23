@@ -90,7 +90,7 @@ export const CARRIERS: CarrierDefinition[] = [
     name: 'UPS',
     image: 'img/square_ups.png',
     exceptionImage: 'img/square_ups_exception.png',
-    url: 'https://wwwapps.ups.com/mcdp',
+    url: 'https://www.ups.com/us/en/track/ups-my-choice',
     sensors: [SENSOR_PACKAGES, SENSOR_DELIVERING, SENSOR_DELIVERED, SENSOR_EXCEPTION],
     hasCamera: true,
   },
