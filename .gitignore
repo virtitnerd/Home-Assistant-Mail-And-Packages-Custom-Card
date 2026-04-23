@@ -8,9 +8,6 @@
 /test-results/
 /.playwright/
 
-# Lock file (not pinned in this project)
-package-lock.json
-
 # macOS
 .DS_Store
 
