@@ -1,0 +1,12 @@
+{
+  "common": {
+    "name": "Mail and Packages Custom Card",
+    "version": "Versjon",
+    "invalid_configuration": "Ikke gyldig konfiguration",
+    "show_warning": "Vis advarsel",
+    "show_error": "Vis feil",
+    "last_check": "Sist sjekket",
+    "in_transit": "Under transport",
+    "delivered": "Levert"
+  }
+}
