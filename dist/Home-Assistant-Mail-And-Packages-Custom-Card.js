@@ -290,7 +290,7 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       /* ── Shared inline item (summary + carrier) ── */
       .summary-item,
       .carrier-item {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: 6px;
         color: var(--primary-text-color);

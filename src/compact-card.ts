@@ -227,7 +227,7 @@ export class MailandpackagesCompactCard extends LitElement {
       /* ── Shared inline item (summary + carrier) ── */
       .summary-item,
       .carrier-item {
-        display: inline-flex;
+        display: flex;
         align-items: center;
         gap: 6px;
         color: var(--primary-text-color);
