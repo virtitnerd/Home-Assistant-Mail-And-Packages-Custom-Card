@@ -5,6 +5,7 @@ import type { CSSResultGroup, TemplateResult, PropertyValues } from 'lit';
 import { HomeAssistant, LovelaceCardEditor, getLovelace, fireEvent } from 'custom-card-helpers';
 
 import './editor';
+import './compact-card';
 import type { MailAndPackagesCardConfig, CarrierEntityConfig } from './types';
 import { CARD_VERSION, HACS_FILES_BASE } from './const';
 import { CARRIERS, CarrierDefinition, CarrierSensorType, getCarrierSensorImage } from './carriers';
