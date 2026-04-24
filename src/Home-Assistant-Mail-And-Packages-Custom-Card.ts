@@ -263,8 +263,8 @@ export class MailandpackagesCard extends LitElement {
       /* ── Header ── */
       .card-header-area {
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        justify-content: space-between;
+        align-items: baseline;
         padding: 12px 16px 8px;
         border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
@@ -273,13 +273,11 @@ export class MailandpackagesCard extends LitElement {
         font-size: 1.4rem;
         font-weight: 500;
         color: var(--primary-text-color);
-        text-align: center;
       }
 
       .last-updated {
         font-size: 0.8rem;
         color: var(--secondary-text-color);
-        margin-top: 2px;
       }
 
       /* ── Summary row ── */
@@ -388,7 +386,7 @@ export class MailandpackagesCard extends LitElement {
       }
 
       .badge-label {
-        font-size: 0.72rem;
+        font-size: 0.85rem;
         color: var(--secondary-text-color);
         margin-top: 6px;
         text-align: center;
