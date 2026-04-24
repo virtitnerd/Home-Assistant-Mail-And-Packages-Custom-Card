@@ -267,23 +267,19 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
         font-weight: 400;
         padding: 12px 16px 6px;
         color: var(--primary-text-color);
-        text-align: center;
       }
 
       /* ── Summary row ── */
       .compact-summary {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 16px 32px;
-        padding: 6px 16px;
+        text-align: center;
+        padding: 8px 16px;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
 
       /* ── Delivery message ── */
       .compact-message {
         padding: 4px 16px 6px;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         color: var(--primary-text-color);
         line-height: 1.4;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
@@ -291,10 +287,7 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
 
       /* ── Carrier row ── */
       .compact-carriers {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-evenly;
-        gap: 10px 8px;
+        text-align: center;
         padding: 8px 16px;
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
@@ -302,17 +295,18 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       /* ── Shared inline item (summary + carrier) ── */
       .summary-item,
       .carrier-item {
-        display: flex;
+        display: inline-flex;
         align-items: center;
         gap: 6px;
         font-size: 1rem;
         color: var(--primary-text-color);
         white-space: nowrap;
+        margin: 4px 8px;
       }
 
       .row-icon {
-        width: 1.35rem;
-        height: 1.35rem;
+        width: 1.5rem;
+        height: 1.5rem;
         border-radius: 50%;
         object-fit: cover;
         flex-shrink: 0;
@@ -332,8 +326,8 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       /* ── Footer ── */
       .compact-footer {
         padding: 6px 16px 8px;
-        font-size: 0.78rem;
-        color: var(--disabled-text-color, var(--secondary-text-color));
+        font-size: 0.8rem;
+        color: var(--secondary-text-color);
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
         margin-top: 8px;
       }
@@ -428,8 +422,8 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       /* ── Header ── */
       .card-header-area {
         display: flex;
-        flex-direction: column;
-        align-items: center;
+        justify-content: space-between;
+        align-items: baseline;
         padding: 12px 16px 8px;
         border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
@@ -438,13 +432,11 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
         font-size: 1.4rem;
         font-weight: 500;
         color: var(--primary-text-color);
-        text-align: center;
       }
 
       .last-updated {
         font-size: 0.8rem;
         color: var(--secondary-text-color);
-        margin-top: 2px;
       }
 
       /* ── Summary row ── */
@@ -553,7 +545,7 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
       }
 
       .badge-label {
-        font-size: 0.72rem;
+        font-size: 0.85rem;
         color: var(--secondary-text-color);
         margin-top: 6px;
         text-align: center;
