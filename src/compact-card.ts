@@ -58,14 +58,19 @@ export class MailandpackagesCompactCard extends LitElement {
     const deliveryMsg = cfg.entity_delivery_message ? states[cfg.entity_delivery_message] : undefined;
     const carriers = cfg.carriers || {};
 
-    // Build compact carrier items — mail count + package count per carrier
+    // USPS mail count goes in the summary row alongside In Transit / Delivered
+    const uspsMailEntityId = carriers['usps']?.entity_mail;
+    const uspsMailState = uspsMailEntityId ? states[uspsMailEntityId] : undefined;
+
+    // Build compact carrier items — package count per carrier (+ mail for non-USPS carriers)
     const carrierItems: { image: string; label: string; count: string; entityId: string }[] = [];
 
     for (const carrier of CARRIERS) {
       const carrierCfg = carriers[carrier.key];
       if (!carrierCfg) continue;
 
-      if (carrierCfg.entity_mail) {
+      // Non-USPS mail entities (e.g. Canada Post) stay in the carrier row
+      if (carrierCfg.entity_mail && carrier.key !== 'usps') {
         const s = states[carrierCfg.entity_mail];
         if (s) {
           carrierItems.push({
@@ -108,9 +113,22 @@ export class MailandpackagesCompactCard extends LitElement {
     return html`
       <ha-card class="compact-card" tabindex="0">
         ${cfg.name ? html`<div class="compact-title">${cfg.name}</div>` : ''}
-        ${inTransit || delivered
+        ${inTransit || delivered || uspsMailState
           ? html`
               <div class="compact-summary">
+                ${uspsMailState
+                  ? html`
+                      <span class="summary-item">
+                        <img
+                          class="row-icon"
+                          src="${HACS_FILES_BASE}/img/square_mail.png"
+                          alt="Mail"
+                          @error=${this._onImgError}
+                        />
+                        Mail:&nbsp;<strong>${uspsMailState.state}</strong>
+                      </span>
+                    `
+                  : ''}
                 ${delivered
                   ? html`
                       <span class="summary-item">
@@ -189,10 +207,11 @@ export class MailandpackagesCompactCard extends LitElement {
 
       /* ── Title ── */
       .compact-title {
-        font-size: 1.4rem;
+        font-size: 1.6rem;
         font-weight: 400;
         padding: 12px 16px 6px;
         color: var(--primary-text-color);
+        text-align: center;
       }
 
       /* ── Summary row ── */
@@ -230,6 +249,7 @@ export class MailandpackagesCompactCard extends LitElement {
         display: flex;
         align-items: center;
         gap: 6px;
+        font-size: 1rem;
         color: var(--primary-text-color);
         white-space: nowrap;
       }
@@ -256,7 +276,7 @@ export class MailandpackagesCompactCard extends LitElement {
       /* ── Footer ── */
       .compact-footer {
         padding: 6px 16px 8px;
-        font-size: 0.65rem;
+        font-size: 0.78rem;
         color: var(--disabled-text-color, var(--secondary-text-color));
         border-top: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
         margin-top: 8px;

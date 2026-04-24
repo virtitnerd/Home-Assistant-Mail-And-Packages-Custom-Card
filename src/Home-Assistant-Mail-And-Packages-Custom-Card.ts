@@ -79,10 +79,12 @@ export class MailandpackagesCard extends LitElement {
       : undefined;
 
     const carriers = this.config.carriers || {};
+    const uspsMailEntityId = carriers['usps']?.entity_mail;
+    const uspsMail = uspsMailEntityId ? this.hass.states[uspsMailEntityId] : undefined;
 
     return html`
       <ha-card class="mail-and-packages" tabindex="0">
-        ${this._renderHeader(mailUpdated)} ${this._renderSummary(inTransit, delivered)}
+        ${this._renderHeader(mailUpdated)} ${this._renderSummary(inTransit, delivered, uspsMail)}
         ${deliveryMsg ? html`<p class="delivery-message">${deliveryMsg.state}</p>` : ''}
         <div class="carriers">${CARRIERS.map((carrier) => this._renderCarrier(carrier, carriers[carrier.key]))}</div>
       </ha-card>
@@ -107,10 +109,26 @@ export class MailandpackagesCard extends LitElement {
     `;
   }
 
-  private _renderSummary(inTransit: any, delivered: any): TemplateResult {
-    if (!inTransit && !delivered) return html``;
+  private _renderSummary(inTransit: any, delivered: any, uspsMail?: any): TemplateResult {
+    if (!inTransit && !delivered && !uspsMail) return html``;
     return html`
       <div class="summary-row">
+        ${uspsMail
+          ? html`
+              <div class="summary-badge" title="Mail">
+                <div class="badge-icon-wrap">
+                  <img
+                    class="badge-img"
+                    src="${HACS_FILES_BASE}/img/square_mail.png"
+                    alt="Mail"
+                    @error=${this._onImgError}
+                  />
+                  <span class="badge-count">${uspsMail.state}</span>
+                </div>
+                <span class="badge-label">Mail</span>
+              </div>
+            `
+          : ''}
         ${inTransit
           ? html`
               <div class="summary-badge" title="${localize('common.in_transit')}">
@@ -150,7 +168,9 @@ export class MailandpackagesCard extends LitElement {
   private _renderCarrier(carrier: CarrierDefinition, carrierCfg: CarrierEntityConfig | undefined): TemplateResult {
     if (!carrierCfg) return html``;
 
-    const configuredSensors = carrier.sensors.filter((s) => carrierCfg[s.configKey]);
+    const configuredSensors = carrier.sensors.filter(
+      (s) => carrierCfg[s.configKey] && !(carrier.key === 'usps' && s.key === 'mail'),
+    );
 
     // Safe camera access — only when configured AND state exists with entity_picture
     const cameraState = carrierCfg.entity_camera ? this.hass.states[carrierCfg.entity_camera] : undefined;
@@ -243,21 +263,23 @@ export class MailandpackagesCard extends LitElement {
       /* ── Header ── */
       .card-header-area {
         display: flex;
-        justify-content: space-between;
-        align-items: baseline;
+        flex-direction: column;
+        align-items: center;
         padding: 12px 16px 8px;
         border-bottom: 1px solid var(--divider-color, rgba(0, 0, 0, 0.12));
       }
 
       .card-title {
-        font-size: 1.1rem;
+        font-size: 1.4rem;
         font-weight: 500;
         color: var(--primary-text-color);
+        text-align: center;
       }
 
       .last-updated {
-        font-size: 0.7rem;
+        font-size: 0.8rem;
         color: var(--secondary-text-color);
+        margin-top: 2px;
       }
 
       /* ── Summary row ── */
@@ -366,7 +388,7 @@ export class MailandpackagesCard extends LitElement {
       }
 
       .badge-label {
-        font-size: 0.6rem;
+        font-size: 0.72rem;
         color: var(--secondary-text-color);
         margin-top: 6px;
         text-align: center;
