@@ -4,8 +4,16 @@ A custom Lovelace card for the [Mail and Packages integration](https://github.co
 
 Displays carrier package counts, delivery status badges, camera feeds, and summary totals — all configurable through the visual editor or YAML.
 
-![Full card preview](img/card-image-full.png)
-![Compact card preview](img/card-image-compact.png)
+<table>
+  <tr>
+    <th>Full Card</th>
+    <th>Compact Card</th>
+  </tr>
+  <tr>
+    <td><img src="img/card-image-full.png" width="380" alt="Full card preview" /></td>
+    <td><img src="img/card-image-compact.png" width="380" alt="Compact card preview" /></td>
+  </tr>
+</table>
 
 ## Credits
 
