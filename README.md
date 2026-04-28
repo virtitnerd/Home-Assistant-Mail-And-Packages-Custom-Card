@@ -4,8 +4,8 @@ A custom Lovelace card for the [Mail and Packages integration](https://github.co
 
 Displays carrier package counts, delivery status badges, camera feeds, and summary totals — all configurable through the visual editor or YAML.
 
-<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages-Custom-Card/blob/master/img/card-image-full.png?raw=true" alt="Full card preview" />
-<img src="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages-Custom-Card/blob/master/img/card-image-compact.png?raw=true" alt="Compact card preview" />
+![Full card preview](img/card-image-full.png)
+![Compact card preview](img/card-image-compact.png)
 
 ## Credits
 
