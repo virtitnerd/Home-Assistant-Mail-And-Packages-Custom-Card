@@ -1,6 +1,23 @@
 import { esbuildPlugin } from '@web/dev-server-esbuild';
 import { playwrightLauncher } from '@web/test-runner-playwright';
 
+// 1x1 transparent PNG — returned for any /hacsfiles/ image request so tests
+// don't generate 404 errors for carrier icons that don't exist in the test server
+const TRANSPARENT_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+async function serveHacsImages(ctx, next) {
+  if (ctx.path.startsWith('/hacsfiles/')) {
+    ctx.status = 200;
+    ctx.type = 'image/png';
+    ctx.body = TRANSPARENT_PNG;
+    return;
+  }
+  await next();
+}
+
 async function jsonToEsm(ctx, next) {
   await next();
   if (ctx.path.endsWith('.json') && ctx.status === 200) {
@@ -30,7 +47,7 @@ export default {
     // Resolve extensionless relative imports (e.g. import './editor' → editor.ts)
     extensions: ['.ts', '.tsx', '.mjs', '.js'],
   },
-  middleware: [jsonToEsm],
+  middleware: [serveHacsImages, jsonToEsm],
   browsers: [playwrightLauncher({ product: 'chromium' })],
   plugins: [
     esbuildPlugin({
