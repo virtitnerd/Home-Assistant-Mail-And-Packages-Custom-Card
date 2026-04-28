@@ -207,17 +207,6 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
                         Mail:&nbsp;<strong>${c.state}</strong>
                       </span>
                     `:""}
-                ${r?xe`
-                      <span class="summary-item">
-                        <img
-                          class="row-icon"
-                          src="${Ye}/img/square_delivery.png"
-                          alt="Deliveries"
-                          @error=${this._onImgError}
-                        />
-                        Deliveries:&nbsp;<strong>${r.state}</strong>
-                      </span>
-                    `:""}
                 ${i?xe`
                       <span class="summary-item">
                         <img
@@ -227,6 +216,17 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
                           @error=${this._onImgError}
                         />
                         In Transit:&nbsp;<strong>${i.state}</strong>
+                      </span>
+                    `:""}
+                ${r?xe`
+                      <span class="summary-item">
+                        <img
+                          class="row-icon"
+                          src="${Ye}/img/square_delivery.png"
+                          alt="Delivered"
+                          @error=${this._onImgError}
+                        />
+                        Delivered:&nbsp;<strong>${r.state}</strong>
                       </span>
                     `:""}
               </div>
@@ -387,14 +387,14 @@ const We=e=>(t,s)=>{void 0!==s?s.addInitializer(()=>{customElements.define(e,t)}
               </div>
             `:""}
       </div>
-    `:xe``}_renderCarrier(e,t){if(!t)return xe``;const s=e.sensors.filter(s=>t[s.configKey]&&!("usps"===e.key&&"mail"===s.key)),i=t.entity_camera?this.hass.states[t.entity_camera]:void 0,r=i?.attributes?.entity_picture,n=t.entity_delivered?parseInt(this.hass.states[t.entity_delivered]?.state??"0",10):0,a=!!r&&(!t.camera_only_when_delivered||n>0);if(0===s.length&&!a)return xe``;const o="amazon"===e.key&&t.amazon_url?t.amazon_url:e.url;return xe`
+    `:xe``}_renderCarrier(e,t){if(!t)return xe``;const s=e.sensors.filter(s=>t[s.configKey]&&!("usps"===e.key&&"mail"===s.key)),i=t.entity_camera?this.hass.states[t.entity_camera]:void 0,r=i?.attributes?.entity_picture,n=t.entity_delivered?parseInt(this.hass.states[t.entity_delivered]?.state??"0",10):0,a="usps"!==e.key&&!0===i?.attributes?.is_generic,o=!!r&&!a&&(!t.camera_only_when_delivered||n>0);if(0===s.length&&!o)return xe``;const c="amazon"===e.key&&t.amazon_url?t.amazon_url:e.url;return xe`
       <div class="carrier-section">
         <div class="carrier-header">
-          ${o?xe`<a class="carrier-name" href="${o}" target="_blank" rel="noopener noreferrer"
+          ${c?xe`<a class="carrier-name" href="${c}" target="_blank" rel="noopener noreferrer"
                 >${e.name}</a
               >`:xe`<span class="carrier-name">${e.name}</span>`}
         </div>
-        ${a?xe`
+        ${o?xe`
               <img
                 class="delivery-camera"
                 src="${r}&interval=30"

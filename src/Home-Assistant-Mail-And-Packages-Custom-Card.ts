@@ -180,7 +180,9 @@ export class MailandpackagesCard extends LitElement {
     const deliveredCount = carrierCfg.entity_delivered
       ? parseInt(this.hass.states[carrierCfg.entity_delivered]?.state ?? '0', 10)
       : 0;
-    const showCamera = !!cameraUrl && (!carrierCfg.camera_only_when_delivered || deliveredCount > 0);
+    // is_generic=true means no real delivery photo (generic placeholder) — skip for non-USPS carriers
+    const isGenericImage = carrier.key !== 'usps' && cameraState?.attributes?.is_generic === true;
+    const showCamera = !!cameraUrl && !isGenericImage && (!carrierCfg.camera_only_when_delivered || deliveredCount > 0);
 
     if (configuredSensors.length === 0 && !showCamera) return html``;
 

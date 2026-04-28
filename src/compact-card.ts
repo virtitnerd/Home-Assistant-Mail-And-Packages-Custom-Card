@@ -129,19 +129,6 @@ export class MailandpackagesCompactCard extends LitElement {
                       </span>
                     `
                   : ''}
-                ${delivered
-                  ? html`
-                      <span class="summary-item">
-                        <img
-                          class="row-icon"
-                          src="${HACS_FILES_BASE}/img/square_delivery.png"
-                          alt="Deliveries"
-                          @error=${this._onImgError}
-                        />
-                        Deliveries:&nbsp;<strong>${delivered.state}</strong>
-                      </span>
-                    `
-                  : ''}
                 ${inTransit
                   ? html`
                       <span class="summary-item">
@@ -152,6 +139,19 @@ export class MailandpackagesCompactCard extends LitElement {
                           @error=${this._onImgError}
                         />
                         In Transit:&nbsp;<strong>${inTransit.state}</strong>
+                      </span>
+                    `
+                  : ''}
+                ${delivered
+                  ? html`
+                      <span class="summary-item">
+                        <img
+                          class="row-icon"
+                          src="${HACS_FILES_BASE}/img/square_delivery.png"
+                          alt="Delivered"
+                          @error=${this._onImgError}
+                        />
+                        Delivered:&nbsp;<strong>${delivered.state}</strong>
                       </span>
                     `
                   : ''}
